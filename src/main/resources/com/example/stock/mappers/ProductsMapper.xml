@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.stock.mappers.ProductsMapper">
+<!--   实体类映射 -->
+	<resultMap id="base_result_map" type="com.example.stock.entity.po.Products">
+		<!--   商品ID -->
+		<id column="product_id" property="productId" />
+		<!--   商品名称 -->
+		<result column="product_name" property="productName" />
+		<!--   商品编码，唯一 -->
+		<result column="product_code" property="productCode" />
+		<!--   商品类型id -->
+		<result column="product_type" property="productType" />
+	</resultMap>
+	<!--   通用查询列 -->
+	<sql id="base_column_list">
+		product_id,product_name,product_code,product_type
+	</sql>
+	<!--   通用基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test="query.productId != null ">
+			and product_id = #{query.productId}
+		</if>
+		<if test="query.productName != null and query.productName != ''  ">
+			and product_name = #{query.productName}
+		</if>
+		<if test="query.productCode != null and query.productCode != ''  ">
+			and product_code = #{query.productCode}
+		</if>
+		<if test="query.productType != null ">
+			and product_type = #{query.productType}
+		</if>
+	</sql>
+	<!--   通用扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+			<if test= "query.productNameFuzzy != null and query.productNameFuzzy!= '' ">
+				and product_name like concat('%', #{query.productNameFuzzy},'%')
+			</if>
+			<if test= "query.productCodeFuzzy != null and query.productCodeFuzzy!= '' ">
+				and product_code like concat('%', #{query.productCodeFuzzy},'%')
+			</if>
+	</sql>
+	<!--   扩展查询条件汇总 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+<!--   查询集合 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT <include refid="base_column_list" /> FROM products <include refid="query_condition"/>
+		<if test="query.orderBy != null"> order by ${query.orderBy} </if>
+
+		<if test="query.simplePage != null"> limit #{query.simplePage.start},#{query.simplePage.end} </if>
+
+	</select>
+<!--   查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		select count(1) from products
+		<include refid="query_condition"/>
+	</select>
+<!--   插入数据 -->
+	 <insert id="insert" parameterType="com.example.stock.entity.po.Products">
+		<selectKey keyProperty="bean.productId" resultType="Integer" order="AFTER">
+			select LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO  products
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.productId != null"> 
+				product_id,
+			</if>
+			<if test="bean.productName != null"> 
+				product_name,
+			</if>
+			<if test="bean.productCode != null"> 
+				product_code,
+			</if>
+			<if test="bean.productType != null"> 
+				product_type,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.productId != null"> 
+				#{bean.productId},
+			</if>
+			<if test="bean.productName != null"> 
+				#{bean.productName},
+			</if>
+			<if test="bean.productCode != null"> 
+				#{bean.productCode},
+			</if>
+			<if test="bean.productType != null"> 
+				#{bean.productType},
+			</if>
+		</trim>
+	</insert>
+<!--   插入或者更新数据 -->
+	 <insert id="insertOrUpdate" parameterType="com.example.stock.entity.po.Products">
+		INSERT INTO  products
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.productId != null"> 
+				product_id,
+			</if>
+			<if test="bean.productName != null"> 
+				product_name,
+			</if>
+			<if test="bean.productCode != null"> 
+				product_code,
+			</if>
+			<if test="bean.productType != null"> 
+				product_type,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.productId != null"> 
+				#{bean.productId},
+			</if>
+			<if test="bean.productName != null"> 
+				#{bean.productName},
+			</if>
+			<if test="bean.productCode != null"> 
+				#{bean.productCode},
+			</if>
+			<if test="bean.productType != null"> 
+				#{bean.productType},
+			</if>
+		</trim>
+		on DUPLICATE key update
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.productName != null"> 
+				product_name= VALUES(product_name),
+			</if>
+			<if test="bean.productType != null"> 
+				product_name= VALUES(product_name),product_type= VALUES(product_type)
+			</if>
+		</trim>
+	</insert>
+<!--   批量插入数据 -->
+	<insert id="insertBatch" parameterType="com.example.stock.entity.po.Products" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO  products(product_name,product_code,product_type) values
+		<foreach collection="list" item="item" separator="," >
+		(
+		#{item.productName},#{item.productCode},#{item.productType}
+		)
+		</foreach>
+	</insert>
+<!--   批量插入或者更新数据 -->
+	 <insert id="insertOrUpdateBatch" parameterType="com.example.stock.entity.po.Products">
+		INSERT INTO  products(productId,productName,productCode,productType) values
+		<foreach collection="list" item="item" separator="," >
+		(
+		#{item.productId},#{item.productName},#{item.productCode},#{item.productType}
+		)
+		</foreach>
+		on DUPLICATE key update
+		product_name= VALUES(product_name),
+		product_type= VALUES(product_type)
+	</insert>
+<!-- 根据ProductId查询  -->
+	<select id="selectByProductId"  resultMap="base_result_map">
+	select <include refid="base_column_list"/>  from  products where product_id=#{productId}
+	</select>
+
+<!-- 根据ProductId更新-->
+	<update id= "updateByProductId" parameterType="com.example.stock.entity.po.Products">
+		UPDATE  products
+		<set>
+			<if test="bean.productId != null" >
+				product_id=#{bean.productId},
+			 </if>
+			<if test="bean.productName != null" >
+				product_name=#{bean.productName},
+			 </if>
+			<if test="bean.productCode != null" >
+				product_code=#{bean.productCode},
+			 </if>
+			<if test="bean.productType != null" >
+				product_type=#{bean.productType}
+			 </if>
+		</set>
+		where product_id=#{productId}
+	</update>
+
+<!-- 根据ProductId删除-->
+	<delete id= "deleteByProductId" parameterType="java.lang.Integer">
+		delete from products where product_id=#{productId}
+	</delete>
+
+<!-- 根据ProductCode查询  -->
+	<select id="selectByProductCode"  resultMap="base_result_map">
+	select <include refid="base_column_list"/>  from  products where product_code=#{productCode}
+	</select>
+
+<!-- 根据ProductCode更新-->
+	<update id= "updateByProductCode" parameterType="com.example.stock.entity.po.Products">
+		UPDATE  products
+		<set>
+			<if test="bean.productId != null" >
+				product_id=#{bean.productId},
+			 </if>
+			<if test="bean.productName != null" >
+				product_name=#{bean.productName},
+			 </if>
+			<if test="bean.productCode != null" >
+				product_code=#{bean.productCode},
+			 </if>
+			<if test="bean.productType != null" >
+				product_type=#{bean.productType}
+			 </if>
+		</set>
+		where product_code=#{productCode}
+	</update>
+
+<!-- 根据ProductCode删除-->
+	<delete id= "deleteByProductCode" parameterType="java.lang.Integer">
+		delete from products where product_code=#{productCode}
+	</delete>
+
+</mapper>

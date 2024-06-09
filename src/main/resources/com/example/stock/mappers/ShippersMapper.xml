@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.stock.mappers.ShippersMapper">
+<!--   实体类映射 -->
+	<resultMap id="base_result_map" type="com.example.stock.entity.po.Shippers">
+		<!--   出货人ID，自动递增 -->
+		<id column="shipper_id" property="shipperId" />
+		<!--   出货人姓名 -->
+		<result column="shipper_name" property="shipperName" />
+		<!--   出货人手机号 -->
+		<result column="shipper_phone" property="shipperPhone" />
+		<!--   出货人邮箱 -->
+		<result column="shipper_email" property="shipperEmail" />
+	</resultMap>
+	<!--   通用查询列 -->
+	<sql id="base_column_list">
+		shipper_id,shipper_name,shipper_phone,shipper_email
+	</sql>
+	<!--   通用基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test="query.shipperId != null ">
+			and shipper_id = #{query.shipperId}
+		</if>
+		<if test="query.shipperName != null and query.shipperName != ''  ">
+			and shipper_name = #{query.shipperName}
+		</if>
+		<if test="query.shipperPhone != null and query.shipperPhone != ''  ">
+			and shipper_phone = #{query.shipperPhone}
+		</if>
+		<if test="query.shipperEmail != null and query.shipperEmail != ''  ">
+			and shipper_email = #{query.shipperEmail}
+		</if>
+	</sql>
+	<!--   通用扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+			<if test= "query.shipperNameFuzzy != null and query.shipperNameFuzzy!= '' ">
+				and shipper_name like concat('%', #{query.shipperNameFuzzy},'%')
+			</if>
+			<if test= "query.shipperPhoneFuzzy != null and query.shipperPhoneFuzzy!= '' ">
+				and shipper_phone like concat('%', #{query.shipperPhoneFuzzy},'%')
+			</if>
+			<if test= "query.shipperEmailFuzzy != null and query.shipperEmailFuzzy!= '' ">
+				and shipper_email like concat('%', #{query.shipperEmailFuzzy},'%')
+			</if>
+	</sql>
+	<!--   扩展查询条件汇总 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+<!--   查询集合 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT <include refid="base_column_list" /> FROM shippers <include refid="query_condition"/>
+		<if test="query.orderBy != null"> order by ${query.orderBy} </if>
+
+		<if test="query.simplePage != null"> limit #{query.simplePage.start},#{query.simplePage.end} </if>
+
+	</select>
+<!--   查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		select count(1) from shippers
+		<include refid="query_condition"/>
+	</select>
+<!--   插入数据 -->
+	 <insert id="insert" parameterType="com.example.stock.entity.po.Shippers">
+		<selectKey keyProperty="bean.shipperId" resultType="Integer" order="AFTER">
+			select LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO  shippers
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.shipperId != null"> 
+				shipper_id,
+			</if>
+			<if test="bean.shipperName != null"> 
+				shipper_name,
+			</if>
+			<if test="bean.shipperPhone != null"> 
+				shipper_phone,
+			</if>
+			<if test="bean.shipperEmail != null"> 
+				shipper_email,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.shipperId != null"> 
+				#{bean.shipperId},
+			</if>
+			<if test="bean.shipperName != null"> 
+				#{bean.shipperName},
+			</if>
+			<if test="bean.shipperPhone != null"> 
+				#{bean.shipperPhone},
+			</if>
+			<if test="bean.shipperEmail != null"> 
+				#{bean.shipperEmail},
+			</if>
+		</trim>
+	</insert>
+<!--   插入或者更新数据 -->
+	 <insert id="insertOrUpdate" parameterType="com.example.stock.entity.po.Shippers">
+		INSERT INTO  shippers
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.shipperId != null"> 
+				shipper_id,
+			</if>
+			<if test="bean.shipperName != null"> 
+				shipper_name,
+			</if>
+			<if test="bean.shipperPhone != null"> 
+				shipper_phone,
+			</if>
+			<if test="bean.shipperEmail != null"> 
+				shipper_email,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.shipperId != null"> 
+				#{bean.shipperId},
+			</if>
+			<if test="bean.shipperName != null"> 
+				#{bean.shipperName},
+			</if>
+			<if test="bean.shipperPhone != null"> 
+				#{bean.shipperPhone},
+			</if>
+			<if test="bean.shipperEmail != null"> 
+				#{bean.shipperEmail},
+			</if>
+		</trim>
+		on DUPLICATE key update
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.shipperName != null"> 
+				shipper_name= VALUES(shipper_name),
+			</if>
+			<if test="bean.shipperPhone != null"> 
+				shipper_name= VALUES(shipper_name),shipper_phone= VALUES(shipper_phone),
+			</if>
+			<if test="bean.shipperEmail != null"> 
+				shipper_name= VALUES(shipper_name),shipper_phone= VALUES(shipper_phone),shipper_email= VALUES(shipper_email)
+			</if>
+		</trim>
+	</insert>
+<!--   批量插入数据 -->
+	<insert id="insertBatch" parameterType="com.example.stock.entity.po.Shippers" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO  shippers(shipper_name,shipper_phone,shipper_email) values
+		<foreach collection="list" item="item" separator="," >
+		(
+		#{item.shipperName},#{item.shipperPhone},#{item.shipperEmail}
+		)
+		</foreach>
+	</insert>
+<!--   批量插入或者更新数据 -->
+	 <insert id="insertOrUpdateBatch" parameterType="com.example.stock.entity.po.Shippers">
+		INSERT INTO  shippers(shipperId,shipperName,shipperPhone,shipperEmail) values
+		<foreach collection="list" item="item" separator="," >
+		(
+		#{item.shipperId},#{item.shipperName},#{item.shipperPhone},#{item.shipperEmail}
+		)
+		</foreach>
+		on DUPLICATE key update
+		shipper_name= VALUES(shipper_name),
+		shipper_phone= VALUES(shipper_phone),
+		shipper_email= VALUES(shipper_email)
+	</insert>
+<!-- 根据ShipperId查询  -->
+	<select id="selectByShipperId"  resultMap="base_result_map">
+	select <include refid="base_column_list"/>  from  shippers where shipper_id=#{shipperId}
+	</select>
+
+<!-- 根据ShipperId更新-->
+	<update id= "updateByShipperId" parameterType="com.example.stock.entity.po.Shippers">
+		UPDATE  shippers
+		<set>
+			<if test="bean.shipperId != null" >
+				shipper_id=#{bean.shipperId},
+			 </if>
+			<if test="bean.shipperName != null" >
+				shipper_name=#{bean.shipperName},
+			 </if>
+			<if test="bean.shipperPhone != null" >
+				shipper_phone=#{bean.shipperPhone},
+			 </if>
+			<if test="bean.shipperEmail != null" >
+				shipper_email=#{bean.shipperEmail}
+			 </if>
+		</set>
+		where shipper_id=#{shipperId}
+	</update>
+
+<!-- 根据ShipperId删除-->
+	<delete id= "deleteByShipperId" parameterType="java.lang.Integer">
+		delete from shippers where shipper_id=#{shipperId}
+	</delete>
+
+</mapper>

@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.stock.mappers.ShipmentsMapper">
+<!--   实体类映射 -->
+	<resultMap id="base_result_map" type="com.example.stock.entity.po.Shipments">
+		<!--   出货ID，自动递增 -->
+		<id column="shipment_id" property="shipmentId" />
+		<!--   商品ID，外键 -->
+		<result column="product_id" property="productId" />
+		<!--   出货人ID，外键 -->
+		<result column="shipper_id" property="shipperId" />
+		<!--   出货日期 -->
+		<result column="shipment_date" property="shipmentDate" />
+		<!--   出货数量 -->
+		<result column="quantity" property="quantity" />
+		<!--   出货价格 -->
+		<result column="price" property="price" />
+		<!--   金额合计 -->
+		<result column="total_amount" property="totalAmount" />
+		<!--   已付金额 -->
+		<result column="amount_paid" property="amountPaid" />
+		<!--   待付金额 -->
+		<result column="amount_due" property="amountDue" />
+		<!--   出货备注 -->
+		<result column="remarks" property="remarks" />
+	</resultMap>
+	<!--   通用查询列 -->
+	<sql id="base_column_list">
+		shipment_id,product_id,shipper_id,shipment_date,quantity,price,total_amount,amount_paid,amount_due,remarks
+	</sql>
+	<!--   通用基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test="query.shipmentId != null ">
+			and shipment_id = #{query.shipmentId}
+		</if>
+		<if test="query.productId != null ">
+			and product_id = #{query.productId}
+		</if>
+		<if test="query.shipperId != null ">
+			and shipper_id = #{query.shipperId}
+		</if>
+		<if test="query.shipmentDate != null ">
+			and shipment_date = #{query.shipmentDate}
+		</if>
+		<if test="query.quantity != null ">
+			and quantity = #{query.quantity}
+		</if>
+		<if test="query.price != null ">
+			and price = #{query.price}
+		</if>
+		<if test="query.totalAmount != null ">
+			and total_amount = #{query.totalAmount}
+		</if>
+		<if test="query.amountPaid != null ">
+			and amount_paid = #{query.amountPaid}
+		</if>
+		<if test="query.amountDue != null ">
+			and amount_due = #{query.amountDue}
+		</if>
+		<if test="query.remarks != null and query.remarks != ''  ">
+			and remarks = #{query.remarks}
+		</if>
+	</sql>
+	<!--   通用扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+			<if test= "query.shipmentDateStart != null and query.shipmentDateStart!= '' ">
+				 <![CDATA[ and shipment_date >= str_to_date(#{query.shipmentDateStart}, '%Y-%m-%d' ) ]]>
+			</if>
+			<if test= "query.shipmentDateEnd != null and query.shipmentDateEnd!= '' ">
+				 <![CDATA[ and shipment_date < date_sub( str_to_date(#{query.shipmentDateEnd}, '%Y-%m-%d' ),interval -1 day) ]]>
+			</if>
+			<if test= "query.remarksFuzzy != null and query.remarksFuzzy!= '' ">
+				and remarks like concat('%', #{query.remarksFuzzy},'%')
+			</if>
+	</sql>
+	<!--   扩展查询条件汇总 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+<!--   查询集合 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT <include refid="base_column_list" />
+		FROM shipments
+		<include refid="query_condition"/>
+
+		<if test="query.orderBy != null"> order by ${query.orderBy} </if>
+
+		<if test="query.simplePage != null"> limit #{query.simplePage.start},#{query.simplePage.end} </if>
+
+	</select>
+<!--   查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		select count(1) from shipments
+		<include refid="query_condition"/>
+	</select>
+<!--   插入数据 -->
+	 <insert id="insert" parameterType="com.example.stock.entity.po.Shipments">
+		<selectKey keyProperty="bean.shipmentId" resultType="Integer" order="AFTER">
+			select LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO  shipments
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.shipmentId != null"> 
+				shipment_id,
+			</if>
+			<if test="bean.productId != null"> 
+				product_id,
+			</if>
+			<if test="bean.shipperId != null"> 
+				shipper_id,
+			</if>
+			<if test="bean.shipmentDate != null"> 
+				shipment_date,
+			</if>
+			<if test="bean.quantity != null"> 
+				quantity,
+			</if>
+			<if test="bean.price != null"> 
+				price,
+			</if>
+			<if test="bean.totalAmount != null"> 
+				total_amount,
+			</if>
+			<if test="bean.amountPaid != null"> 
+				amount_paid,
+			</if>
+			<if test="bean.amountDue != null"> 
+				amount_due,
+			</if>
+			<if test="bean.remarks != null"> 
+				remarks,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.shipmentId != null"> 
+				#{bean.shipmentId},
+			</if>
+			<if test="bean.productId != null"> 
+				#{bean.productId},
+			</if>
+			<if test="bean.shipperId != null"> 
+				#{bean.shipperId},
+			</if>
+			<if test="bean.shipmentDate != null"> 
+				#{bean.shipmentDate},
+			</if>
+			<if test="bean.quantity != null"> 
+				#{bean.quantity},
+			</if>
+			<if test="bean.price != null"> 
+				#{bean.price},
+			</if>
+			<if test="bean.totalAmount != null"> 
+				#{bean.totalAmount},
+			</if>
+			<if test="bean.amountPaid != null"> 
+				#{bean.amountPaid},
+			</if>
+			<if test="bean.amountDue != null"> 
+				#{bean.amountDue},
+			</if>
+			<if test="bean.remarks != null"> 
+				#{bean.remarks},
+			</if>
+		</trim>
+	</insert>
+<!--   插入或者更新数据 -->
+	 <insert id="insertOrUpdate" parameterType="com.example.stock.entity.po.Shipments">
+		INSERT INTO  shipments
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.shipmentId != null"> 
+				shipment_id,
+			</if>
+			<if test="bean.productId != null"> 
+				product_id,
+			</if>
+			<if test="bean.shipperId != null"> 
+				shipper_id,
+			</if>
+			<if test="bean.shipmentDate != null"> 
+				shipment_date,
+			</if>
+			<if test="bean.quantity != null"> 
+				quantity,
+			</if>
+			<if test="bean.price != null"> 
+				price,
+			</if>
+			<if test="bean.totalAmount != null"> 
+				total_amount,
+			</if>
+			<if test="bean.amountPaid != null"> 
+				amount_paid,
+			</if>
+			<if test="bean.amountDue != null"> 
+				amount_due,
+			</if>
+			<if test="bean.remarks != null"> 
+				remarks,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.shipmentId != null"> 
+				#{bean.shipmentId},
+			</if>
+			<if test="bean.productId != null"> 
+				#{bean.productId},
+			</if>
+			<if test="bean.shipperId != null"> 
+				#{bean.shipperId},
+			</if>
+			<if test="bean.shipmentDate != null"> 
+				#{bean.shipmentDate},
+			</if>
+			<if test="bean.quantity != null"> 
+				#{bean.quantity},
+			</if>
+			<if test="bean.price != null"> 
+				#{bean.price},
+			</if>
+			<if test="bean.totalAmount != null"> 
+				#{bean.totalAmount},
+			</if>
+			<if test="bean.amountPaid != null"> 
+				#{bean.amountPaid},
+			</if>
+			<if test="bean.amountDue != null"> 
+				#{bean.amountDue},
+			</if>
+			<if test="bean.remarks != null"> 
+				#{bean.remarks},
+			</if>
+		</trim>
+		on DUPLICATE key update
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.productId != null"> 
+				product_id= VALUES(product_id),
+			</if>
+			<if test="bean.shipperId != null"> 
+				product_id= VALUES(product_id),shipper_id= VALUES(shipper_id),
+			</if>
+			<if test="bean.shipmentDate != null"> 
+				product_id= VALUES(product_id),shipper_id= VALUES(shipper_id),shipment_date= VALUES(shipment_date),
+			</if>
+			<if test="bean.quantity != null"> 
+				product_id= VALUES(product_id),shipper_id= VALUES(shipper_id),shipment_date= VALUES(shipment_date),quantity= VALUES(quantity),
+			</if>
+			<if test="bean.price != null"> 
+				product_id= VALUES(product_id),shipper_id= VALUES(shipper_id),shipment_date= VALUES(shipment_date),quantity= VALUES(quantity),price= VALUES(price),
+			</if>
+			<if test="bean.totalAmount != null"> 
+				product_id= VALUES(product_id),shipper_id= VALUES(shipper_id),shipment_date= VALUES(shipment_date),quantity= VALUES(quantity),price= VALUES(price),total_amount= VALUES(total_amount),
+			</if>
+			<if test="bean.amountPaid != null"> 
+				product_id= VALUES(product_id),shipper_id= VALUES(shipper_id),shipment_date= VALUES(shipment_date),quantity= VALUES(quantity),price= VALUES(price),total_amount= VALUES(total_amount),amount_paid= VALUES(amount_paid),
+			</if>
+			<if test="bean.amountDue != null"> 
+				product_id= VALUES(product_id),shipper_id= VALUES(shipper_id),shipment_date= VALUES(shipment_date),quantity= VALUES(quantity),price= VALUES(price),total_amount= VALUES(total_amount),amount_paid= VALUES(amount_paid),amount_due= VALUES(amount_due),
+			</if>
+			<if test="bean.remarks != null"> 
+				product_id= VALUES(product_id),shipper_id= VALUES(shipper_id),shipment_date= VALUES(shipment_date),quantity= VALUES(quantity),price= VALUES(price),total_amount= VALUES(total_amount),amount_paid= VALUES(amount_paid),amount_due= VALUES(amount_due),remarks= VALUES(remarks)
+			</if>
+		</trim>
+	</insert>
+<!--   批量插入数据 -->
+	<insert id="insertBatch" parameterType="com.example.stock.entity.po.Shipments" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO  shipments(product_id,shipper_id,shipment_date,quantity,price,total_amount,amount_paid,amount_due,remarks) values
+		<foreach collection="list" item="item" separator="," >
+		(
+		#{item.productId},#{item.shipperId},#{item.shipmentDate},#{item.quantity},#{item.price},#{item.totalAmount},#{item.amountPaid},#{item.amountDue},#{item.remarks}
+		)
+		</foreach>
+	</insert>
+<!--   批量插入或者更新数据 -->
+	 <insert id="insertOrUpdateBatch" parameterType="com.example.stock.entity.po.Shipments">
+		INSERT INTO  shipments(shipmentId,productId,shipperId,shipmentDate,quantity,price,totalAmount,amountPaid,amountDue,remarks) values
+		<foreach collection="list" item="item" separator="," >
+		(
+		#{item.shipmentId},#{item.productId},#{item.shipperId},#{item.shipmentDate},#{item.quantity},#{item.price},#{item.totalAmount},#{item.amountPaid},#{item.amountDue},#{item.remarks}
+		)
+		</foreach>
+		on DUPLICATE key update
+		product_id= VALUES(product_id),
+		shipper_id= VALUES(shipper_id),
+		shipment_date= VALUES(shipment_date),
+		quantity= VALUES(quantity),
+		price= VALUES(price),
+		total_amount= VALUES(total_amount),
+		amount_paid= VALUES(amount_paid),
+		amount_due= VALUES(amount_due),
+		remarks= VALUES(remarks)
+	</insert>
+<!-- 根据ShipmentId查询  -->
+	<select id="selectByShipmentId"  resultMap="base_result_map">
+	select <include refid="base_column_list"/>  from  shipments where shipment_id=#{shipmentId}
+	</select>
+
+<!-- 根据ShipmentId更新-->
+	<update id= "updateByShipmentId" parameterType="com.example.stock.entity.po.Shipments">
+		UPDATE  shipments
+		<set>
+			<if test="bean.shipmentId != null" >
+				shipment_id=#{bean.shipmentId},
+			 </if>
+			<if test="bean.productId != null" >
+				product_id=#{bean.productId},
+			 </if>
+			<if test="bean.shipperId != null" >
+				shipper_id=#{bean.shipperId},
+			 </if>
+			<if test="bean.shipmentDate != null" >
+				shipment_date=#{bean.shipmentDate},
+			 </if>
+			<if test="bean.quantity != null" >
+				quantity=#{bean.quantity},
+			 </if>
+			<if test="bean.price != null" >
+				price=#{bean.price},
+			 </if>
+			<if test="bean.totalAmount != null" >
+				total_amount=#{bean.totalAmount},
+			 </if>
+			<if test="bean.amountPaid != null" >
+				amount_paid=#{bean.amountPaid},
+			 </if>
+			<if test="bean.amountDue != null" >
+				amount_due=#{bean.amountDue},
+			 </if>
+			<if test="bean.remarks != null" >
+				remarks=#{bean.remarks}
+			 </if>
+		</set>
+		where shipment_id=#{shipmentId}
+	</update>
+
+<!-- 根据ShipmentId删除-->
+	<delete id= "deleteByShipmentId" parameterType="java.lang.Integer">
+		delete from shipments where shipment_id=#{shipmentId}
+	</delete>
+
+</mapper>

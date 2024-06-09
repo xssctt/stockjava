@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.stock.mappers.TypeMapper">
+<!--   实体类映射 -->
+	<resultMap id="base_result_map" type="com.example.stock.entity.po.Type">
+		<!--   id -->
+		<id column="id" property="id" />
+		<!--   类型名称 -->
+		<result column="name" property="name" />
+		<!--   描述 -->
+		<result column="content" property="content" />
+		<!--   有父类类型 -->
+		<result column="parent_id" property="parentId" />
+	</resultMap>
+	<!--   通用查询列 -->
+	<sql id="base_column_list">
+		id,name,content,parent_id
+	</sql>
+	<!--   通用基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test="query.id != null ">
+			and id = #{query.id}
+		</if>
+		<if test="query.name != null and query.name != ''  ">
+			and name = #{query.name}
+		</if>
+		<if test="query.content != null and query.content != ''  ">
+			and content = #{query.content}
+		</if>
+		<if test="query.parentId != null ">
+			and parent_id = #{query.parentId}
+		</if>
+	</sql>
+	<!--   通用扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+			<if test= "query.nameFuzzy != null and query.nameFuzzy!= '' ">
+				and name like concat('%', #{query.nameFuzzy},'%')
+			</if>
+			<if test= "query.contentFuzzy != null and query.contentFuzzy!= '' ">
+				and content like concat('%', #{query.contentFuzzy},'%')
+			</if>
+	</sql>
+	<!--   扩展查询条件汇总 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+<!--   查询集合 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT <include refid="base_column_list" /> FROM type <include refid="query_condition"/>
+		<if test="query.orderBy != null"> order by ${query.orderBy} </if>
+
+		<if test="query.simplePage != null"> limit #{query.simplePage.start},#{query.simplePage.end} </if>
+
+	</select>
+<!--   查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		select count(1) from type
+		<include refid="query_condition"/>
+	</select>
+<!--   插入数据 -->
+	 <insert id="insert" parameterType="com.example.stock.entity.po.Type">
+		INSERT INTO  type
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null"> 
+				id,
+			</if>
+			<if test="bean.name != null"> 
+				name,
+			</if>
+			<if test="bean.content != null"> 
+				content,
+			</if>
+			<if test="bean.parentId != null"> 
+				parent_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null"> 
+				#{bean.id},
+			</if>
+			<if test="bean.name != null"> 
+				#{bean.name},
+			</if>
+			<if test="bean.content != null"> 
+				#{bean.content},
+			</if>
+			<if test="bean.parentId != null"> 
+				#{bean.parentId},
+			</if>
+		</trim>
+	</insert>
+<!--   插入或者更新数据 -->
+	 <insert id="insertOrUpdate" parameterType="com.example.stock.entity.po.Type">
+		INSERT INTO  type
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null"> 
+				id,
+			</if>
+			<if test="bean.name != null"> 
+				name,
+			</if>
+			<if test="bean.content != null"> 
+				content,
+			</if>
+			<if test="bean.parentId != null"> 
+				parent_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null"> 
+				#{bean.id},
+			</if>
+			<if test="bean.name != null"> 
+				#{bean.name},
+			</if>
+			<if test="bean.content != null"> 
+				#{bean.content},
+			</if>
+			<if test="bean.parentId != null"> 
+				#{bean.parentId},
+			</if>
+		</trim>
+		on DUPLICATE key update
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.name != null"> 
+				name= VALUES(name),
+			</if>
+			<if test="bean.content != null"> 
+				name= VALUES(name),content= VALUES(content),
+			</if>
+			<if test="bean.parentId != null"> 
+				name= VALUES(name),content= VALUES(content),parent_id= VALUES(parent_id)
+			</if>
+		</trim>
+	</insert>
+<!--   批量插入数据 -->
+	<insert id="insertBatch" parameterType="com.example.stock.entity.po.Type" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO  type(id,name,content,parent_id) values
+		<foreach collection="list" item="item" separator="," >
+		(
+		#{item.id},#{item.name},#{item.content},#{item.parentId}
+		)
+		</foreach>
+	</insert>
+<!--   批量插入或者更新数据 -->
+	 <insert id="insertOrUpdateBatch" parameterType="com.example.stock.entity.po.Type">
+		INSERT INTO  type(id,name,content,parentId) values
+		<foreach collection="list" item="item" separator="," >
+		(
+		#{item.id},#{item.name},#{item.content},#{item.parentId}
+		)
+		</foreach>
+		on DUPLICATE key update
+		name= VALUES(name),
+		content= VALUES(content),
+		parent_id= VALUES(parent_id)
+	</insert>
+<!-- 根据Id查询  -->
+	<select id="selectById"  resultMap="base_result_map">
+	select <include refid="base_column_list"/>  from  type where id=#{id}
+	</select>
+
+<!-- 根据Id更新-->
+	<update id= "updateById" parameterType="com.example.stock.entity.po.Type">
+		UPDATE  type
+		<set>
+			<if test="bean.id != null" >
+				id=#{bean.id},
+			 </if>
+			<if test="bean.name != null" >
+				name=#{bean.name},
+			 </if>
+			<if test="bean.content != null" >
+				content=#{bean.content},
+			 </if>
+			<if test="bean.parentId != null" >
+				parent_id=#{bean.parentId}
+			 </if>
+		</set>
+		where id=#{id}
+	</update>
+
+<!-- 根据Id删除-->
+	<delete id= "deleteById" parameterType="java.lang.Integer">
+		delete from type where id=#{id}
+	</delete>
+
+</mapper>
